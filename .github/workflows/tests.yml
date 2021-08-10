@@ -1,0 +1,54 @@
+name: dotnet package
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '2.0.x'
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '2.1.x'
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'          
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      - name: Setup cement
+        shell: pwsh
+        run: |
+          $cementBaseDirectory = if ($isLinux) { "~/bin" } else { "$env:USERPROFILE\bin" }
+          $cementDirectory = if ($isLinux) { "$cementBaseDirectory/dotnet" } else { "$cementBaseDirectory\dotnet" }
+          Invoke-WebRequest "https://github.com/skbkontur/cement/releases/download/v1.0.61/189c047ed7ee17ad9fc52aa3e41ca84944a1b9bc.zip" -Out "cement.zip"
+          Expand-Archive "cement.zip" -Force -DestinationPath "$cementBaseDirectory"
+          mono ~/bin/dotnet/cm.exe --version
+          cd ..
+          mono ~/bin/dotnet/cm.exe init
+          cd /home/runner/work/clusterclient.transport/clusterclient.transport
+          mono ~/bin/dotnet/cm.exe update-deps
+          mono ~/bin/dotnet/cm.exe build-deps
+
+      - name: Build
+        run: dotnet build --configuration Release
+      - name: Test
+        run: |
+          #for i in {1..6}
+          #do
+            dotnet test --no-build --logger:"console;verbosity=detailed" --configuration Release --verbosity normal || true
+          #done
+   
+          
